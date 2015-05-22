@@ -16,6 +16,8 @@ class UserInfo
 end
 
 class MyBot < Ebooks::Bot
+  attr_accessor :model_path
+
   # Configuration here applies to all MyBots
   def configure
     # Consumer details come from registering an app at https://dev.twitter.com/
