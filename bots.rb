@@ -20,26 +20,24 @@ class MyBot < Ebooks::Bot
   end
 
   def on_startup
+    load_model!
+
     scheduler.every '24h' do
-      # Tweet something every 24 hours
-      # See https://github.com/jmettraux/rufus-scheduler
-      # tweet("hi")
-      # pictweet("hi", "cuteselfie.jpg")
+      tweet(model.make_statement)
     end
   end
 
   def on_message(dm)
-    # Reply to a DM
-    # reply(dm, "secret secrets")
+    delay do
+      reply(dm, model.make_response(dm.text))
+    end
   end
 
   def on_follow(user)
-    # Follow a user back
-    # follow(user.screen_name)
+    follow(user.screen_name)
   end
 
   def on_mention(tweet)
-    # Reply to a mention
     # reply(tweet, "oh hullo")
   end
 
@@ -49,8 +47,17 @@ class MyBot < Ebooks::Bot
   end
 
   def on_favorite(user, tweet)
-    # Follow user who just favorited bot's tweet
-    # follow(user.screen_name)
+    follow(user.screen_name)
+  end
+
+  private
+  def load_model!
+    return if @model
+
+    @model_path ||= "model/#{original}.model"
+
+    log "Loading model #{model_path}"
+    @model = Ebooks::Model.load(model_path)
   end
 end
 
@@ -58,4 +65,5 @@ end
 MyBot.new("nietzsche_books") do |bot|
   bot.access_token = ENV["ACCESS_TOKEN_nietzsche"]
   bot.access_token_secret = ENV["ACCESS_SECRET_nietzsche"]
+  bot.model_path = "model/nietzsche.model"
 end
