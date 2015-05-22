@@ -9,20 +9,35 @@ task :fetch do
       f.set_encoding work[:encoding]
       out_fn = File.join ".", "texts", "converted", "#{work[:title]}.txt"
       File.open(out_fn, "w") do |out|
+        lines = []
+        paragraph = ->{
+          out.puts lines.compact.join(" ") unless lines.empty?
+        }
         f.each_line do |line|
           line = line.encode Encoding::UTF_8
           if headers.empty?
             if footers.first && line.chomp =~ footers.first
               footers.shift
-              break if footers.empty?
+              if footers.empty?
+                paragraph.call
+                break
+              end
             end
+
             line.gsub!(/--+/, "—")
             line.gsub!(/\.\.\./, "…")
-            out << line
+
+            if line.chomp =~ /^\s*[A-Z0-9.:—…']*\s*$/
+              paragraph.call
+              lines = []
+            else
+              lines << line.chomp.lstrip
+            end
           elsif line.chomp =~ headers.first
             headers.shift
           end
         end
+        paragraph.call
       end
     end
   end
