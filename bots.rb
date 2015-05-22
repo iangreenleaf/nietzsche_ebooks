@@ -1,8 +1,19 @@
 require 'twitter_ebooks'
 require 'dotenv'
 
-# This is an example bot definition with event handlers commented out
-# You can define and instantiate as many bots as you like
+# Information about a particular Twitter user we know
+class UserInfo
+  attr_reader :username
+
+  # @return [Integer] how many times we can pester this user unprompted
+  attr_accessor :pesters_left
+
+  # @param username [String]
+  def initialize(username)
+    @username = username
+    @pesters_left = 1
+  end
+end
 
 class MyBot < Ebooks::Bot
   # Configuration here applies to all MyBots
@@ -38,16 +49,60 @@ class MyBot < Ebooks::Bot
   end
 
   def on_mention(tweet)
-    # reply(tweet, "oh hullo")
-  end
+    # Become more inclined to pester a user when they talk to us
+    userinfo(tweet.user.screen_name).pesters_left += 1
 
-  def on_timeline(tweet)
-    # Reply to a tweet in the bot's timeline
-    # reply(tweet, "nice tweet")
+    delay do
+      reply(tweet, model.make_response(meta(tweet).mentionless, meta(tweet).limit))
+    end
   end
 
   def on_favorite(user, tweet)
     follow(user.screen_name)
+  end
+
+  def top200; @top200 ||= model.keywords.take(200); end
+  def top50;  @top50  ||= model.keywords.take(50); end
+
+  def on_timeline(tweet)
+    return if tweet.retweeted_status?
+    return unless can_pester?(tweet.user.screen_name)
+
+    tokens = Ebooks::NLP.tokenize(tweet.text)
+
+    interesting = tokens.find { |t| top200.include?(t.downcase) }
+    very_interesting = tokens.find_all { |t| top50.include?(t.downcase) }.length > 2
+
+    delay do
+      if very_interesting
+        favorite(tweet) if rand < 0.5
+        retweet(tweet) if rand < 0.1
+        if rand < 0.01
+          userinfo(tweet.user.screen_name).pesters_left -= 1
+          reply(tweet, model.make_response(meta(tweet).mentionless, meta(tweet).limit))
+        end
+      elsif interesting
+        favorite(tweet) if rand < 0.05
+        if rand < 0.001
+          userinfo(tweet.user.screen_name).pesters_left -= 1
+          reply(tweet, model.make_response(meta(tweet).mentionless, meta(tweet).limit))
+        end
+      end
+    end
+  end
+
+  # Find information we've collected about a user
+  # @param username [String]
+  # @return [Ebooks::UserInfo]
+  def userinfo(username)
+    @userinfo[username] ||= UserInfo.new(username)
+  end
+
+  # Check if we're allowed to send unprompted tweets to a user
+  # @param username [String]
+  # @return [Boolean]
+  def can_pester?(username)
+    userinfo(username).pesters_left > 0
   end
 
   private
