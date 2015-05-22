@@ -6,9 +6,11 @@ task :fetch do
     headers = work[:headers]
     footers = work[:footers]
     open(work[:url]) do |f|
+      f.set_encoding work[:encoding]
       out_fn = File.join ".", "texts", "converted", "#{work[:title]}.txt"
       File.open(out_fn, "w") do |out|
         f.each_line do |line|
+          line = line.encode Encoding::UTF_8
           if headers.first && line.chomp =~ headers.first
             headers.shift
           end
