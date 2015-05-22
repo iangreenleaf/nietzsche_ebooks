@@ -11,9 +11,6 @@ task :fetch do
       File.open(out_fn, "w") do |out|
         f.each_line do |line|
           line = line.encode Encoding::UTF_8
-          if headers.first && line.chomp =~ headers.first
-            headers.shift
-          end
           if headers.empty?
             if footers.first && line.chomp =~ footers.first
               footers.shift
@@ -22,6 +19,8 @@ task :fetch do
             line.gsub!(/--+/, "—")
             line.gsub!(/\.\.\./, "…")
             out << line
+          elsif line.chomp =~ headers.first
+            headers.shift
           end
         end
       end
