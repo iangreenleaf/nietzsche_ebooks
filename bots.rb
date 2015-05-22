@@ -30,11 +30,45 @@ class MyBot < Ebooks::Bot
     self.delay_range = 1..6
   end
 
+  # Nietzsche's schedule:
+  # midnight-6am: The merciful abyss of sleep
+  # 7am: Wake up, tea and biscuits
+  # 8am-9am: Brooding
+  # 10am-11am: A bracing walk, the senses alive with a rush of enlightened ascendant power!
+  # noon-3pm: Despair
+  # 4pm: Afternoon snack
+  # 5pm-6pm: Stoking the flames of old enmities
+  # 7pm: Light dinner
+  # 8pm-11pm: Brooding despair
+  # midnight: Opium
+  SCHEDULE = {
+    "7" => 0.1,
+    "8" => 0.3,
+    "9" => 0.4,
+    "10" => 0.1,
+    "11" => 0.1,
+    "12" => 0.2,
+    "13" => 0.2,
+    "14" => 0.2,
+    "15" => 0.2,
+    "16" => 0.1,
+    "17" => 0.4,
+    "18" => 0.4,
+    "19" => 0.1,
+    "20" => 0.3,
+    "21" => 0.3,
+    "22" => 0.3,
+    "23" => 0.3,
+    "24" => 0.1,
+  }
+
   def on_startup
     load_model!
 
-    scheduler.every '24h' do
-      tweet(model.make_statement)
+    scheduler.cron '0,30 7-24 * * * America/Los_Angeles' do
+      if rand < SCHEDULE[Time.now.hour.to_s]/2
+        tweet(model.make_statement)
+      end
     end
   end
 
