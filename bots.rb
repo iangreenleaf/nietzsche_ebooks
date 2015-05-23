@@ -20,8 +20,6 @@ class MyBot < Ebooks::Bot
 
   # Configuration here applies to all MyBots
   def configure
-    # Consumer details come from registering an app at https://dev.twitter.com/
-    # Once you have consumer details, use "ebooks auth" for new access tokens
     self.consumer_key = ENV["CONSUMER_KEY"]
     self.consumer_secret = ENV["CONSUMER_SECRET"]
 
@@ -30,6 +28,8 @@ class MyBot < Ebooks::Bot
 
     # Range in seconds to randomize delay when bot.delay is called
     self.delay_range = 1..6
+
+    @userinfo = {}
   end
 
   # Nietzsche's schedule:
