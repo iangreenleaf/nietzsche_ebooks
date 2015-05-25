@@ -16,7 +16,7 @@ class UserInfo
 end
 
 class MyBot < Ebooks::Bot
-  attr_accessor :model_path
+  attr_accessor :model_path, :model
 
   # Configuration here applies to all MyBots
   def configure
