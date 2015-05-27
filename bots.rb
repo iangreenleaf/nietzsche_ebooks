@@ -68,7 +68,7 @@ class MyBot < Ebooks::Bot
     load_model!
 
     scheduler.cron '0,30 7-24 * * * America/Los_Angeles' do
-      if rand < SCHEDULE[Time.now.hour.to_s].to_f / 2
+      if rand < SCHEDULE[Time.now.getlocal("-07:00").hour.to_s].to_f / 2
         tweet(model.make_statement)
       end
     end
